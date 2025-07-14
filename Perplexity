@@ -1,1 +1,19 @@
 
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+def compute_perplexity(model_name, texts):
+    model = AutoModelForCausalLM.from_pretrained(model_name).eval()
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+    with torch.no_grad():
+        outputs = model(**inputs, labels=inputs["input_ids"])
+    loss = outputs.loss
+    perplexity = torch.exp(loss).item()
+    return perplexity
+
+# Example: Evaluate Qwen 3 on customer support queries
+texts = ["How can I return a defective shirt?", "What is the refund policy?"]
+model_name = "Qwen/Qwen2-7B-Instruct"  # Use Qwen 3 when available
+perplexity = compute_perplexity(model_name, texts)
+print(f"Perplexity: {perplexity}")
